@@ -12,11 +12,10 @@ DUSTING_MAP = {
 }
 
 class Collection:
-    current_collection = {}
-    total_dust = 0
-    legendary_count = 0
-
     def __init__(self, standard):
+        self.current_collection = {}
+        self.total_dust = 0
+        self.legendary_count = 0
         self._standard = standard
 
         total = 0
@@ -33,13 +32,13 @@ class Collection:
 
     def update_dust(self, amount):
         self.total_dust += amount
-        self._total_dust_cost -= amount
 
     def add_to_collection(self, choice, golden):
         count = self.current_collection.get(choice['dbfId'], 0)
         amount = 1 if choice['rarity'] == 'LEGENDARY' else 2
         if count < amount:
             self.current_collection[choice['dbfId']] = count + 1
+            self._total_dust_cost -= DUSTING_MAP['GOLDEN_' + choice['rarity']]
         else:
             self.update_dust(DUSTING_MAP[('GOLDEN_' if golden else '')
                                          + choice['rarity']])

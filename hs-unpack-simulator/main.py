@@ -40,16 +40,18 @@ def main():
                                                     'EXPERT1', 'ICECROWN', 'UNGORO'])]
 
     standard = Standard(standard_lst)
+    runs = 1000
     total = 0
-    for i in range(0, 1000):
+    for i in range(0, runs):
         collection = Collection(standard)
         counter = 0
         while collection.dust_remaining() > 0:
             generate_card(standard)
             counter += 1
-        print(f'Trail #{i} - {counter/5}')
+        print(f'{i}/{runs}\t\t', end='\r')
         total += counter/5
 
-    print(f'Average: {total/1000}')
+    print(f'Average: {total/runs}')
+    print(f'Cost: ${((total/runs)/60)*88:.2f} CAD')
 
 if __name__ == '__main__': main()

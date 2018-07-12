@@ -2,36 +2,51 @@ import json
 import random
 from collection import Collection
 from standard import Standard
+from pprint import pprint
 
 collection = None
-    
-def handle_legendary(legendary, golden):
-    choice = collection.get_legendary_not_in_collection(legendary)
-    if choice is not None:
-        collection.add_to_collection(choice, golden)
 
 def handle_card(list, golden, message):
-    choice = random.choice(list)
-    collection.add_to_collection(choice, golden)
+    if message == 'LEGENDARY':
+        choice = collection.get_legendary_not_in_collection(list)
+    else:
+        choice = random.choice(list)
+    choice['isGolden'] = True if golden else False
+    return choice
 
 def generate_card(standard):
     rand = random.uniform(0, 100)
     if rand < 0.10:
-        handle_legendary(standard.legendary, True)
+        return handle_card(standard.legendary, True, 'LEGENDARY')
     elif rand < 1.06:
-        handle_legendary(standard.legendary, False)
+        return handle_card(standard.legendary, False, 'LEGENDARY')
     elif rand < 1.36:
-        handle_card(standard.epic, True, 'EPIC')
+        return handle_card(standard.epic, True, 'EPIC')
     elif rand < 5.56:
-        handle_card(standard.epic, False, 'EPIC')
+        return handle_card(standard.epic, False, 'EPIC')
     elif rand < 7.04:
-        handle_card(standard.epic, True, 'RARE')
+        return handle_card(standard.rare, True, 'RARE')
     elif rand < 28.71:
-        handle_card(standard.epic, False, 'RARE')
+        return handle_card(standard.rare, False, 'RARE')
     elif rand < 30.33:
-        handle_card(standard.epic, True, 'RARE')
+        return handle_card(standard.common, True, 'COMMON')
     else:
-        handle_card(standard.epic, False, 'COMMON')
+        return handle_card(standard.common, False, 'COMMON')
+
+def get_non_common_card(standard):
+    c = generate_card(standard)
+    while c['rarity'] != 'COMMON':
+        c = generate_card(standard)
+    return c
+
+def generate_pack(standard):
+    pack = [generate_card(standard) for x in range(5)]
+    commons = [c for c in pack if c['rarity'] == 'COMMON']
+    if len(commons) == 5:
+        pack.pop()
+        pack.append(get_non_common_card(standard))
+    for c in pack:
+        collection.add_to_collection(c, c['isGolden'])
 
 def main():
     global collection
@@ -40,18 +55,20 @@ def main():
                                                     'EXPERT1', 'ICECROWN', 'UNGORO'])]
 
     standard = Standard(standard_lst)
-    runs = 1000
+    runs = 100
     total = 0
     for i in range(0, runs):
         collection = Collection(standard)
         counter = 0
         while collection.dust_remaining() > 0:
-            generate_card(standard)
+            generate_pack(standard)
             counter += 1
+
+        total += counter
         print(f'{i}/{runs}\t\t', end='\r')
-        total += counter/5
 
     print(f'Average: {total/runs}')
     print(f'Cost: ${((total/runs)/60)*88:.2f} CAD')
+
 
 if __name__ == '__main__': main()

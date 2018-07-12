@@ -1,5 +1,3 @@
-import random
-
 DUSTING_MAP = {
     'COMMON': 5,
     'GOLDEN_COMMON': 50,
@@ -40,13 +38,13 @@ class Collection:
             self.current_collection[choice['dbfId']] = count + 1
             self._total_dust_cost -= DUSTING_MAP['GOLDEN_' + choice['rarity']]
         else:
-            self.update_dust(DUSTING_MAP[('GOLDEN_' if golden else '')
-                                         + choice['rarity']])
+            amount = DUSTING_MAP[('GOLDEN_' if golden else '') + choice['rarity']]
+            self.update_dust(amount)
 
     def get_legendary_not_in_collection(self, legendary):
         self.legendary_count += 1
         try:
             random = self._legendary_pool.pop()
         except KeyError:
-            return None
+            return self._standard.legendary[0]
         return self._standard.lookup[random]

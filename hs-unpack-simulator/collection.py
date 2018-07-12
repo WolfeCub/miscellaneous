@@ -20,12 +20,13 @@ class Collection:
         self._standard = standard
 
         total = 0
-        for item in standard:
+        for item in standard.all:
             if item['rarity'] != 'LEGENDARY':
                 total += DUSTING_MAP['GOLDEN_' + item['rarity']] * 2
             else:
                 total += DUSTING_MAP['GOLDEN_' + item['rarity']]
         self._total_dust_cost = total
+        self._legendary_pool = set(c['dbfId'] for c in standard.legendary)
 
     def dust_remaining(self):
         return self._total_dust_cost - self.total_dust
@@ -36,15 +37,17 @@ class Collection:
 
     def add_to_collection(self, choice, golden):
         count = self.current_collection.get(choice['dbfId'], 0)
-        if count < 2:
+        amount = 1 if choice['rarity'] == 'LEGENDARY' else 2
+        if count < amount:
             self.current_collection[choice['dbfId']] = count + 1
         else:
             self.update_dust(DUSTING_MAP[('GOLDEN_' if golden else '')
                                          + choice['rarity']])
 
     def get_legendary_not_in_collection(self, legendary):
-        while True:
-            choice = random.choice(legendary)
-            if choice['dbfId'] not in self.current_collection:
-                self.legendary_count += 1
-                return choice
+        self.legendary_count += 1
+        try:
+            random = self._legendary_pool.pop()
+        except KeyError:
+            return None
+        return self._standard.lookup[random]
